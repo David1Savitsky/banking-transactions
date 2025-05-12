@@ -1,1 +1,5 @@
-spring.application.name=banking-transactions
+spring:
+  application:
+    name: banking-transactions
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.yaml

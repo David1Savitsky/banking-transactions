@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-user-table
+      author: David Savitsky
+      changes:
+        - createTable:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(500)
+              - column:
+                  name: date_of_birth
+                  type: DATE
+              - column:
+                  name: password
+                  type: VARCHAR(500)
+
+  - changeSet:
+      id: create-account-table
+      author: David Savitsky
+      changes:
+        - createTable:
+            tableName: account
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_account_user
+                    references: USER(ID)
+              - column:
+                  name: balance
+                  type: DECIMAL
+
+  - changeSet:
+      id: create-email-data-table
+      author: David Savitsky
+      changes:
+        - createTable:
+            tableName: email_data
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_email_user
+                    references: USER(ID)
+              - column:
+                  name: email
+                  type: VARCHAR(200)
+                  constraints:
+                    unique: true
+                    nullable: false
+
+  - changeSet:
+      id: create-phone-data-table
+      author: David Savitsky
+      changes:
+        - createTable:
+            tableName: phone_data
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_phone_user
+                    references: USER(ID)
+              - column:
+                  name: phone
+                  type: VARCHAR(13)
+                  constraints:
+                    unique: true
+                    nullable: false
