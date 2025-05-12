@@ -3,3 +3,10 @@ spring:
     name: banking-transactions
   liquibase:
     change-log: classpath:db/changelog/changelog-master.yaml
+server:
+  port: 8000
+  servlet:
+    context-path: /api
+jwt:
+  secret: yLJ9Zf7x2N8qRM4WpTuViX6qZdCEpB3m
+  expirationMillis: 3600000

@@ -5,13 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
+@Table(name = "\"user\"")
 @Getter
 public class User {
 
@@ -29,4 +33,10 @@ public class User {
 
     @OneToOne(mappedBy = "user")
     private Account account;
+
+    @OneToMany(mappedBy = "user")
+    private List<EmailData> emailData;
+
+    @OneToMany(mappedBy = "user")
+    private List<PhoneData> phoneData;
 }
