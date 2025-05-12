@@ -17,7 +17,7 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_seq")
-    @SequenceGenerator(name = "account_seq", sequenceName = "account_id_seq")
+    @SequenceGenerator(name = "account_seq", sequenceName = "account_id_seq", allocationSize = 1)
     private Long id;
 
     @OneToOne(optional = false)

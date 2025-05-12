@@ -15,9 +15,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserValidationService userValidationService;
+    private final ValidationService validationService;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final PhoneService phoneService;
 
     public Optional<User> findByEmail(final String email) {
         return userRepository.findByEmail(email);
@@ -30,7 +31,7 @@ public class UserService {
 
     @Transactional
     public void addEmail(final long userId, final String email) {
-        if (!userValidationService.isEmailUnique(email)) {
+        if (!validationService.isEmailUnique(email)) {
             throw new DataAlreadyUsedException("Email is already used: " + email);
         }
         var user = findById(userId);
@@ -39,19 +40,46 @@ public class UserService {
     }
 
     @Transactional
+    public void addPhone(final long userId, final String phone) {
+        if (!validationService.isPhoneUnique(phone)) {
+            throw new DataAlreadyUsedException("Phone is already used: " + phone);
+        }
+        var user = findById(userId);
+        var newPhone = phoneService.createPhone(user, phone);
+        user.getPhoneData().add(newPhone);
+    }
+
+    @Transactional
     public void updateEmail(final String oldEmail, final String newEmail) {
-        if (!userValidationService.isEmailUnique(newEmail)) {
+        if (!validationService.isEmailUnique(newEmail)) {
             throw new DataAlreadyUsedException("Email is already used: " + newEmail);
         }
         emailService.updateEmail(oldEmail, newEmail);
     }
 
     @Transactional
+    public void updatePhone(final String oldPhone, final String newPhone) {
+        if (!validationService.isPhoneUnique(newPhone)) {
+            throw new DataAlreadyUsedException("Phone is already used: " + newPhone);
+        }
+        phoneService.updatePhone(oldPhone, newPhone);
+    }
+
+    @Transactional
     public void deleteEmail(final long userId, final String email) {
         var user = findById(userId);
-        if (!userValidationService.canDeleteEmail(user) || !userValidationService.isEmailExist(email)) {
+        if (!validationService.canDeleteEmail(user) || !validationService.isEmailExist(email)) {
             throw new ValidationException("Can not delete email: " + email);
         }
         emailService.deleteEmail(email);
+    }
+
+    @Transactional
+    public void deletePhone(final long userId, final String phone) {
+        var user = findById(userId);
+        if (!validationService.canDeletePhone(user) || !validationService.isPhoneExist(phone)) {
+            throw new ValidationException("Can not delete phone: " + phone);
+        }
+        phoneService.deletePhone(phone);
     }
 }
