@@ -45,6 +45,9 @@ databaseChangeLog:
                     foreignKeyName: fk_account_user
                     references: USER(ID)
               - column:
+                  name: start_balance
+                  type: DECIMAL
+              - column:
                   name: balance
                   type: DECIMAL
 
