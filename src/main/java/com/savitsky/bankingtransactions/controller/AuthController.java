@@ -1,7 +1,7 @@
 package com.savitsky.bankingtransactions.controller;
 
-import com.savitsky.bankingtransactions.dto.LoginRequest;
-import com.savitsky.bankingtransactions.dto.LoginResponse;
+import com.savitsky.bankingtransactions.dto.request.LoginDtoRequest;
+import com.savitsky.bankingtransactions.dto.response.LoginDtoResponse;
 import com.savitsky.bankingtransactions.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,8 +17,8 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody final LoginRequest loginRequest) {
-        var token = authService.login(loginRequest.email(), loginRequest.password());
-        return new LoginResponse(token);
+    public LoginDtoResponse login(@RequestBody final LoginDtoRequest loginDtoRequest) {
+        var token = authService.login(loginDtoRequest.email(), loginDtoRequest.password());
+        return new LoginDtoResponse(token);
     }
 }

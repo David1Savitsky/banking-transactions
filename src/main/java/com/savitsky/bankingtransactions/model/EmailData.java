@@ -8,15 +8,23 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmailData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "email_data_seq")
-    @SequenceGenerator(name = "email_data_seq", sequenceName = "email_data_id_seq")
+    @SequenceGenerator(name = "email_data_seq", sequenceName = "email_data_id_seq", allocationSize = 1)
     private Long id;
 
     @ManyToOne(optional = false)
