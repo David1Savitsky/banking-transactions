@@ -12,4 +12,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "JOIN u.emailData ed " +
             "WHERE ed.email = :email")
     Optional<User> findByEmail(String email);
+
+    @Query("SELECT u FROM User u " +
+            "JOIN u.phoneData pd " +
+            "WHERE pd.phone = :phone")
+    Optional<User> findByPhone(String phone);
 }

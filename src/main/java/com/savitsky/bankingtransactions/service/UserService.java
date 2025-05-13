@@ -3,12 +3,19 @@ package com.savitsky.bankingtransactions.service;
 import com.savitsky.bankingtransactions.exception.DataAlreadyUsedException;
 import com.savitsky.bankingtransactions.exception.DataNotFoundException;
 import com.savitsky.bankingtransactions.exception.ValidationException;
+import com.savitsky.bankingtransactions.mapper.UserMapper;
 import com.savitsky.bankingtransactions.model.User;
 import com.savitsky.bankingtransactions.repository.UserRepository;
+import com.savitsky.bankingtransactions.service.elastic.UserElasticService;
+import com.savitsky.bankingtransactions.service.elastic.UserSearchService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
@@ -19,6 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PhoneService phoneService;
+    private final UserSearchService userSearchService;
+    private final UserElasticService userElasticService;
 
     public Optional<User> findByEmail(final String email) {
         return userRepository.findByEmail(email);
@@ -37,6 +46,8 @@ public class UserService {
         var user = findById(userId);
         var newEmail = emailService.createEmail(user, email);
         user.getEmailData().add(newEmail);
+
+        userElasticService.updateUserDocument(user);
     }
 
     @Transactional
@@ -47,6 +58,8 @@ public class UserService {
         var user = findById(userId);
         var newPhone = phoneService.createPhone(user, phone);
         user.getPhoneData().add(newPhone);
+
+        userElasticService.updateUserDocument(user);
     }
 
     @Transactional
@@ -55,6 +68,10 @@ public class UserService {
             throw new DataAlreadyUsedException("Email is already used: " + newEmail);
         }
         emailService.updateEmail(oldEmail, newEmail);
+
+        var user = userRepository.findByEmail(newEmail)
+                .orElseThrow(() -> new DataNotFoundException("User not found with email: " + newEmail));
+        userElasticService.updateUserDocument(user);
     }
 
     @Transactional
@@ -63,6 +80,10 @@ public class UserService {
             throw new DataAlreadyUsedException("Phone is already used: " + newPhone);
         }
         phoneService.updatePhone(oldPhone, newPhone);
+
+        var user = userRepository.findByPhone(newPhone)
+                .orElseThrow(() -> new DataNotFoundException("User not found with phone: " + newPhone));
+        userElasticService.updateUserDocument(user);
     }
 
     @Transactional
@@ -72,6 +93,9 @@ public class UserService {
             throw new ValidationException("Can not delete email: " + email);
         }
         emailService.deleteEmail(email);
+
+        user.getEmailData().removeIf(e -> e.getEmail().equals(email));
+        userElasticService.updateUserDocument(user);
     }
 
     @Transactional
@@ -81,5 +105,20 @@ public class UserService {
             throw new ValidationException("Can not delete phone: " + phone);
         }
         phoneService.deletePhone(phone);
+
+        user.getPhoneData().removeIf(p -> p.getPhone().equalsIgnoreCase(phone));
+        userElasticService.updateUserDocument(user);
+    }
+
+    public Page<User> search(final String name,
+                             final String phone,
+                             final String email,
+                             final LocalDate dateOfBirth,
+                             final PageRequest page) {
+        var userDocuments = userSearchService.search(name, phone, email, dateOfBirth, page);
+        var users = userDocuments.getContent().stream()
+                .map(UserMapper::mapUserDocumentToUser)
+                .toList();
+        return new PageImpl<>(users, userDocuments.getPageable(), userDocuments.getTotalElements());
     }
 }

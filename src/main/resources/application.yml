@@ -3,6 +3,8 @@ spring:
     name: banking-transactions
   liquibase:
     change-log: classpath:db/changelog/changelog-master.yaml
+  elasticsearch:
+    uris: http://localhost:9200
 server:
   port: 8000
   servlet:
