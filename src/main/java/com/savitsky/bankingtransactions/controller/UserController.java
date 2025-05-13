@@ -3,6 +3,7 @@ package com.savitsky.bankingtransactions.controller;
 import com.savitsky.bankingtransactions.dto.UserDto;
 import com.savitsky.bankingtransactions.dto.request.EmailDtoRequest;
 import com.savitsky.bankingtransactions.dto.request.PhoneDataRequest;
+import com.savitsky.bankingtransactions.dto.request.TransferDtoRequest;
 import com.savitsky.bankingtransactions.dto.request.UpdateEmailDtoRequest;
 import com.savitsky.bankingtransactions.dto.request.UpdatePhoneDtoRequest;
 import com.savitsky.bankingtransactions.mapper.UserMapper;
@@ -44,6 +45,11 @@ public class UserController {
                 .map(UserMapper::mapUserToUserDto)
                 .toList();
         return new PageImpl<>(users, userPage.getPageable(), userPage.getTotalElements());
+    }
+
+    @PostMapping("/transfer")
+    public void transferMoney(@RequestBody final TransferDtoRequest request) {
+        userService.transferMoney(SecurityService.getCurrentUserId(), request.toUserId(), request.amount());
     }
 
     @PostMapping("/emails")

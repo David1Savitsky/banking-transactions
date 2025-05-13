@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -120,5 +121,30 @@ public class UserService {
                 .map(UserMapper::mapUserDocumentToUser)
                 .toList();
         return new PageImpl<>(users, userDocuments.getPageable(), userDocuments.getTotalElements());
+    }
+
+    @Transactional
+    public void transferMoney(long fromUserId, Long toUserId, BigDecimal amount) {
+        if (fromUserId == toUserId) {
+            throw new ValidationException("Нельзя перевести деньги самому себе.");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("Сумма перевода должна быть больше нуля.");
+        }
+
+        var fromUser = userRepository.findByIdForUpdate(fromUserId)
+                .orElseThrow(() -> new DataNotFoundException("Отправитель не найден"));
+        var toUser = userRepository.findByIdForUpdate(toUserId)
+                .orElseThrow(() -> new DataNotFoundException("Получатель не найден"));
+
+        if (fromUser.getAccount().getBalance().compareTo(amount) < 0) {
+            throw new ValidationException("Недостаточно средств для перевода");
+        }
+
+        fromUser.getAccount().setBalance(fromUser.getAccount().getBalance().subtract(amount));
+        toUser.getAccount().setBalance(toUser.getAccount().getBalance().add(amount));
+
+        userRepository.save(fromUser);
+        userRepository.save(toUser);
     }
 }
