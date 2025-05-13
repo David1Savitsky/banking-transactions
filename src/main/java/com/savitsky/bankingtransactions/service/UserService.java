@@ -126,19 +126,19 @@ public class UserService {
     @Transactional
     public void transferMoney(long fromUserId, Long toUserId, BigDecimal amount) {
         if (fromUserId == toUserId) {
-            throw new ValidationException("Нельзя перевести деньги самому себе.");
+            throw new ValidationException("You can't transfer money to yourself");
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new ValidationException("Сумма перевода должна быть больше нуля.");
+            throw new ValidationException("The transfer amount must be greater than 0");
         }
 
         var fromUser = userRepository.findByIdForUpdate(fromUserId)
-                .orElseThrow(() -> new DataNotFoundException("Отправитель не найден"));
+                .orElseThrow(() -> new DataNotFoundException("Sender not found"));
         var toUser = userRepository.findByIdForUpdate(toUserId)
-                .orElseThrow(() -> new DataNotFoundException("Получатель не найден"));
+                .orElseThrow(() -> new DataNotFoundException("Recipient not found"));
 
         if (fromUser.getAccount().getBalance().compareTo(amount) < 0) {
-            throw new ValidationException("Недостаточно средств для перевода");
+            throw new ValidationException("Not enough funds to transfer");
         }
 
         fromUser.getAccount().setBalance(fromUser.getAccount().getBalance().subtract(amount));
