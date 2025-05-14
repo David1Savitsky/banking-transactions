@@ -14,8 +14,7 @@ public class QuartzConfig {
 
     private static final String BALANCE_GROWTH_TRIGGER = "balanceGrowthTrigger";
     private static final String BALANCE_GROWTH_JOB = "balanceGrowthJob";
-    // TODO change to 30
-    private static final int BALANCE_GROWTH_INTERVAL_IN_SECONDS = 300000;
+    private static final int BALANCE_GROWTH_INTERVAL_IN_SECONDS = 30;
 
     @Bean
     public JobDetail balanceJobDetail() {

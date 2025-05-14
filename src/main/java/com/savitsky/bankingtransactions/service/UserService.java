@@ -146,6 +146,7 @@ public class UserService {
             @CacheEvict(value = "users", key = "#fromUserId"),
             @CacheEvict(value = "users", key = "#toUserId")
     })
+
     @Transactional
     public void transferMoney(long fromUserId, Long toUserId, BigDecimal amount) {
         if (fromUserId == toUserId) {
