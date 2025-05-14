@@ -10,6 +10,8 @@ import com.savitsky.bankingtransactions.service.elastic.UserElasticService;
 import com.savitsky.bankingtransactions.service.elastic.UserSearchService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,42 +30,37 @@ public class UserService {
     private final PhoneService phoneService;
     private final UserSearchService userSearchService;
     private final UserElasticService userElasticService;
+    private final UserQueryService userQueryService;
 
-    public Optional<User> findByEmail(final String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public User findById(final long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("User not found with id: " + id));
-    }
-
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public void addEmail(final long userId, final String email) {
         if (!validationService.isEmailUnique(email)) {
             throw new DataAlreadyUsedException("Email is already used: " + email);
         }
-        var user = findById(userId);
+        var user = userQueryService.findById(userId);
         var newEmail = emailService.createEmail(user, email);
         user.getEmailData().add(newEmail);
 
         userElasticService.updateUserDocument(user);
     }
 
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public void addPhone(final long userId, final String phone) {
         if (!validationService.isPhoneUnique(phone)) {
             throw new DataAlreadyUsedException("Phone is already used: " + phone);
         }
-        var user = findById(userId);
+        var user = userQueryService.findById(userId);
         var newPhone = phoneService.createPhone(user, phone);
         user.getPhoneData().add(newPhone);
 
         userElasticService.updateUserDocument(user);
     }
 
+    @CacheEvict(value = "users", key = "#result.id")
     @Transactional
-    public void updateEmail(final String oldEmail, final String newEmail) {
+    public User updateEmail(final String oldEmail, final String newEmail) {
         if (!validationService.isEmailUnique(newEmail)) {
             throw new DataAlreadyUsedException("Email is already used: " + newEmail);
         }
@@ -72,11 +68,14 @@ public class UserService {
 
         var user = userRepository.findByEmail(newEmail)
                 .orElseThrow(() -> new DataNotFoundException("User not found with email: " + newEmail));
+
         userElasticService.updateUserDocument(user);
+        return user;
     }
 
+    @CacheEvict(value = "users", key = "#result.id")
     @Transactional
-    public void updatePhone(final String oldPhone, final String newPhone) {
+    public User updatePhone(final String oldPhone, final String newPhone) {
         if (!validationService.isPhoneUnique(newPhone)) {
             throw new DataAlreadyUsedException("Phone is already used: " + newPhone);
         }
@@ -84,12 +83,15 @@ public class UserService {
 
         var user = userRepository.findByPhone(newPhone)
                 .orElseThrow(() -> new DataNotFoundException("User not found with phone: " + newPhone));
+
         userElasticService.updateUserDocument(user);
+        return user;
     }
 
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public void deleteEmail(final long userId, final String email) {
-        var user = findById(userId);
+        var user = userQueryService.findById(userId);
         if (!validationService.canDeleteEmail(user) || !validationService.isEmailExist(email)) {
             throw new ValidationException("Can not delete email: " + email);
         }
@@ -99,9 +101,10 @@ public class UserService {
         userElasticService.updateUserDocument(user);
     }
 
+    @CacheEvict(value = "users", key = "#userId")
     @Transactional
     public void deletePhone(final long userId, final String phone) {
-        var user = findById(userId);
+        var user = userQueryService.findById(userId);
         if (!validationService.canDeletePhone(user) || !validationService.isPhoneExist(phone)) {
             throw new ValidationException("Can not delete phone: " + phone);
         }
@@ -123,6 +126,10 @@ public class UserService {
         return new PageImpl<>(users, userDocuments.getPageable(), userDocuments.getTotalElements());
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "users", key = "#fromUserId"),
+            @CacheEvict(value = "users", key = "#toUserId")
+    })
     @Transactional
     public void transferMoney(long fromUserId, Long toUserId, BigDecimal amount) {
         if (fromUserId == toUserId) {

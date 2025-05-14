@@ -27,6 +27,7 @@ class UserServiceUnitTest {
     private PhoneService phoneService;
     private UserSearchService userSearchService;
     private UserElasticService userElasticService;
+    private UserQueryService userQueryService;
     private UserService userService;
 
     @BeforeEach
@@ -37,6 +38,7 @@ class UserServiceUnitTest {
         phoneService = mock(PhoneService.class);
         userSearchService = mock(UserSearchService.class);
         userElasticService = mock(UserElasticService.class);
+        userQueryService = mock(UserQueryService.class);
 
         userService = new UserService(
                 validationService,
@@ -44,7 +46,8 @@ class UserServiceUnitTest {
                 emailService,
                 phoneService,
                 userSearchService,
-                userElasticService
+                userElasticService,
+                userQueryService
         );
     }
 

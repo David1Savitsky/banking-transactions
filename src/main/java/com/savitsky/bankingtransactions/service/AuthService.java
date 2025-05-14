@@ -13,10 +13,10 @@ public class AuthService {
 
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     public String login(final String email, final String password) {
-        var user = userService.findByEmail(email)
+        var user = userQueryService.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {

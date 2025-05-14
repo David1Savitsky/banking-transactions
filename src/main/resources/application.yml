@@ -5,6 +5,12 @@ spring:
     change-log: classpath:db/changelog/changelog-master.yaml
   elasticsearch:
     uris: http://localhost:9200
+  cache:
+    type: redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
 server:
   port: 8000
   servlet:
@@ -12,3 +18,5 @@ server:
 jwt:
   secret: yLJ9Zf7x2N8qRM4WpTuViX6qZdCEpB3m
   expirationMillis: 3600000
+cache:
+  ttl-minutes: 10
